@@ -25,6 +25,12 @@ class Reservation
     #[ORM\Column(length: 255)]
     private ?string $status = null;
 
+    #[ORM\ManyToOne(inversedBy: 'reservations')]
+    private ?User $reservations = null;
+
+    #[ORM\ManyToOne(inversedBy: 'reservations')]
+    private ?Car $car = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -62,6 +68,30 @@ class Reservation
     public function setStatus(string $status): static
     {
         $this->status = $status;
+
+        return $this;
+    }
+
+    public function getReservations(): ?User
+    {
+        return $this->reservations;
+    }
+
+    public function setReservations(?User $reservations): static
+    {
+        $this->reservations = $reservations;
+
+        return $this;
+    }
+
+    public function getCar(): ?Car
+    {
+        return $this->car;
+    }
+
+    public function setCar(?Car $car): static
+    {
+        $this->car = $car;
 
         return $this;
     }
