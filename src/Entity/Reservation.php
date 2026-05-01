@@ -3,38 +3,63 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Post;
 use App\Repository\ReservationRepository;
+use App\State\ReservationCreationProcessor;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Entity(repositoryClass: ReservationRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new Post(
+            uriTemplate: '/reservations',
+            processor: ReservationCreationProcessor::class,
+            denormalizationContext: ['groups' => ['reservation:write']],
+            normalizationContext: ['groups' => ['reservation:read']]
+        ),
+    ]
+)]
 class Reservation
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['reservation:read'])]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[Assert\NotNull(groups: ['reservation:write'])]
+    #[Groups(['reservation:read', 'reservation:write'])]
     private ?\DateTime $startDate = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[Assert\NotNull(groups: ['reservation:write'])]
+    #[Groups(['reservation:read', 'reservation:write'])]
     private ?\DateTime $endDate = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['reservation:read', 'reservation:write'])]
     private ?string $status = null;
 
     #[ORM\ManyToOne(inversedBy: 'reservations')]
+    #[Groups(['reservation:read'])]
     private ?User $reservations = null;
 
     #[ORM\ManyToOne(inversedBy: 'reservations')]
+    #[Assert\NotNull(groups: ['reservation:write'])]
+    #[Groups(['reservation:read', 'reservation:write'])]
     private ?Car $car = null;
 
     #[ORM\Column]
+    #[Groups(['reservation:read'])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column]
+    #[Groups(['reservation:read'])]
     private ?\DateTimeImmutable $updatedAt = null;
 
 
@@ -132,5 +157,19 @@ class Reservation
         $this->updatedAt = $updatedAt;
 
         return $this;
+    }
+
+    #[Assert\Callback]
+    public function validateDateRange(ExecutionContextInterface $context): void
+    {
+        if ($this->startDate === null || $this->endDate === null) {
+            return;
+        }
+
+        if ($this->endDate < $this->startDate) {
+            $context->buildViolation('The endDate cannot be earlier than startDate.')
+                ->atPath('endDate')
+                ->addViolation();
+        }
     }
 }
