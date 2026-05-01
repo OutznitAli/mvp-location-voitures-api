@@ -30,6 +30,18 @@ final class ReservationCreationService
         $reservation->setUpdatedAt(new \DateTimeImmutable());
     }
 
+    public function prepareForUpdate(Reservation $reservation, User $currentUser): void
+    {
+        if ($reservation->getReservations()?->getId() !== $currentUser->getId()) {
+            throw new \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException('You can only update your own reservations.');
+        }
+
+        $this->assertDateCoherence($reservation);
+        $this->assertNoOverlapConflict($reservation, $reservation->getId());
+
+        $reservation->setUpdatedAt(new \DateTimeImmutable());
+    }
+
     private function assertDateCoherence(Reservation $reservation): void
     {
         $startDate = $reservation->getStartDate();
@@ -44,7 +56,7 @@ final class ReservationCreationService
         }
     }
 
-    private function assertNoOverlapConflict(Reservation $reservation): void
+    private function assertNoOverlapConflict(Reservation $reservation, ?int $excludeReservationId = null): void
     {
         $car = $reservation->getCar();
         $startDate = $reservation->getStartDate();
@@ -54,7 +66,7 @@ final class ReservationCreationService
             return;
         }
 
-        if ($this->reservationRepository->hasOverlapForCar($car, $startDate, $endDate)) {
+        if ($this->reservationRepository->hasOverlapForCar($car, $startDate, $endDate, $excludeReservationId)) {
             throw new UnprocessableEntityHttpException('This car is already reserved for the requested date range.');
         }
     }

@@ -18,20 +18,27 @@ class ReservationRepository extends ServiceEntityRepository
         parent::__construct($registry, Reservation::class);
     }
 
-    public function hasOverlapForCar(Car $car, \DateTimeInterface $startDate, \DateTimeInterface $endDate): bool
-    {
-        $count = (int) $this->createQueryBuilder('r')
+    public function hasOverlapForCar(
+        Car $car,
+        \DateTimeInterface $startDate,
+        \DateTimeInterface $endDate,
+        ?int $excludeReservationId = null,
+    ): bool {
+        $qb = $this->createQueryBuilder('r')
             ->select('COUNT(r.id)')
             ->andWhere('r.car = :car')
             ->andWhere('r.startDate < :requestedEndDate')
             ->andWhere('r.endDate > :requestedStartDate')
             ->setParameter('car', $car)
             ->setParameter('requestedStartDate', $startDate)
-            ->setParameter('requestedEndDate', $endDate)
-            ->getQuery()
-            ->getSingleScalarResult();
+            ->setParameter('requestedEndDate', $endDate);
 
-        return $count > 0;
+        if ($excludeReservationId !== null) {
+            $qb->andWhere('r.id != :excludeId')
+               ->setParameter('excludeId', $excludeReservationId);
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult() > 0;
     }
 
     /**

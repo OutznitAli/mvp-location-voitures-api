@@ -5,8 +5,10 @@ namespace App\Entity;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 use App\Repository\ReservationRepository;
 use App\State\ReservationCreationProcessor;
+use App\State\ReservationUpdateProcessor;
 use App\State\UserReservationsProvider;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -27,6 +29,13 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
             uriTemplate: '/users/{id}/reservations',
             requirements: ['id' => '\\d+'],
             provider: UserReservationsProvider::class,
+            normalizationContext: ['groups' => ['reservation:read']]
+        ),
+        new Put(
+            uriTemplate: '/reservations/{id}',
+            requirements: ['id' => '\\d+'],
+            processor: ReservationUpdateProcessor::class,
+            denormalizationContext: ['groups' => ['reservation:write']],
             normalizationContext: ['groups' => ['reservation:read']]
         ),
     ]
