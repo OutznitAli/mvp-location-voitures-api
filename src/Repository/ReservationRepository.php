@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Car;
 use App\Entity\Reservation;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -31,6 +32,19 @@ class ReservationRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
 
         return $count > 0;
+    }
+
+    /**
+     * @return Reservation[]
+     */
+    public function findByUser(User $user): array
+    {
+        return $this->createQueryBuilder('r')
+            ->andWhere('r.reservations = :user')
+            ->setParameter('user', $user)
+            ->orderBy('r.startDate', 'ASC')
+            ->getQuery()
+            ->getResult();
     }
 
     //    /**

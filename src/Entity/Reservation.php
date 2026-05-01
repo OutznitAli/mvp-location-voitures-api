@@ -3,9 +3,11 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use App\Repository\ReservationRepository;
 use App\State\ReservationCreationProcessor;
+use App\State\UserReservationsProvider;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -19,6 +21,12 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
             uriTemplate: '/reservations',
             processor: ReservationCreationProcessor::class,
             denormalizationContext: ['groups' => ['reservation:write']],
+            normalizationContext: ['groups' => ['reservation:read']]
+        ),
+        new GetCollection(
+            uriTemplate: '/users/{id}/reservations',
+            requirements: ['id' => '\\d+'],
+            provider: UserReservationsProvider::class,
             normalizationContext: ['groups' => ['reservation:read']]
         ),
     ]
