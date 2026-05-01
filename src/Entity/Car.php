@@ -3,30 +3,54 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use App\Repository\CarRepository;
+use App\State\CarCollectionProvider;
+use App\State\CarItemProvider;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: CarRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new GetCollection(
+            uriTemplate: '/cars',
+            provider: CarCollectionProvider::class,
+            normalizationContext: ['groups' => ['car:read']]
+        ),
+        new Get(
+            uriTemplate: '/cars/{id}',
+            requirements: ['id' => '\\d+'],
+            provider: CarItemProvider::class,
+            normalizationContext: ['groups' => ['car:read']]
+        ),
+    ]
+)]
 class Car
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['car:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['car:read'])]
     private ?string $brand = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['car:read'])]
     private ?string $model = null;
 
     #[ORM\Column]
+    #[Groups(['car:read'])]
     private ?int $unitPricePerDay = null;
 
     #[ORM\Column]
+    #[Groups(['car:read'])]
     private ?bool $isAvailable = null;
 
     /**

@@ -16,6 +16,30 @@ class CarRepository extends ServiceEntityRepository
         parent::__construct($registry, Car::class);
     }
 
+    /**
+     * @return list<Car>
+     */
+    public function findAvailableCars(): array
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.isAvailable = :isAvailable')
+            ->setParameter('isAvailable', true)
+            ->orderBy('c.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findAvailableCarById(int $id): ?Car
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.id = :id')
+            ->andWhere('c.isAvailable = :isAvailable')
+            ->setParameter('id', $id)
+            ->setParameter('isAvailable', true)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     //    /**
     //     * @return Car[] Returns an array of Car objects
     //     */
