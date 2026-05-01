@@ -3,10 +3,12 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\Repository\ReservationRepository;
+use App\State\ReservationCancellationProcessor;
 use App\State\ReservationCreationProcessor;
 use App\State\ReservationUpdateProcessor;
 use App\State\UserReservationsProvider;
@@ -37,6 +39,11 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
             processor: ReservationUpdateProcessor::class,
             denormalizationContext: ['groups' => ['reservation:write']],
             normalizationContext: ['groups' => ['reservation:read']]
+        ),
+        new Delete(
+            uriTemplate: '/reservations/{id}',
+            requirements: ['id' => '\\d+'],
+            processor: ReservationCancellationProcessor::class,
         ),
     ]
 )]
